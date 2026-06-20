@@ -34,3 +34,20 @@ Output:
 - Python
 - Community Resource Navigation
 - Problem Solving
+## Project Screenshots
+
+### Claude Prompt
+
+![Claude Prompt](claude-screenshot-1.png)
+
+### Claude Response
+
+![Claude Response](claude-screenshot-2.png)
+
+### Claude Building the Python Project
+
+![Claude Building the Python Project](claude-screenshot-3.png)
+
+### Program Running
+
+![Program Running](community-resource-navigator-running.png)
