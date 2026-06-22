@@ -22,7 +22,8 @@ This project was built to show how AI can support community organizations, casew
 - Python
 - Anthropic Claude API
 - JSON
-- Command Line Interface
+- Prompt Engineering
+- Command Line Interface (CLI)
 
 ## How to Run
 
