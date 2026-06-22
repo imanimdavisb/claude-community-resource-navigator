@@ -2,9 +2,9 @@
 
 ## Overview
 
-Claude Community Resource Navigator is a Python tool that helps social service staff organize client needs, assess urgency, create follow-up questions, and suggest next steps.
+Claude Community Resource Navigator is a Python-based tool designed to help social service staff organize client needs, assess urgency, generate follow-up questions, and recommend next steps.
 
-This project demonstrates how AI-assisted development can support community organizations by helping staff quickly assess client needs, prioritize resources, and create structured action plans.
+Built with the assistance of Claude AI, this project demonstrates how AI-assisted development can be used to create practical tools that support community organizations, improve intake processes, and help staff respond more effectively to client needs.
 
 ## Features
 
