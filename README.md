@@ -21,19 +21,22 @@ This project demonstrates how AI-assisted development can support community orga
 
 * Python
 * Rule-Based Decision Logic
-* JSON-Style Data Structures
-* Prompt Engineering
 * Command Line Interface (CLI)
+* AI-Assisted Development (Claude AI)
 
 ## How to Run
 
-Run the application:
+1. Download the project files.
+
+2. Open a terminal in the project folder.
+
+3. Run:
 
 ```bash
 python community_resource_navigator.py
 ```
 
-No API key or paid credits are required.
+No API key, internet connection, or paid credits are required.
 
 ## Example Use Case
 
@@ -70,4 +73,3 @@ This project demonstrates how AI-assisted development can be used to build pract
 * Add downloadable case note summaries
 * Add local Chicago-area referral data
 * Add multi-language support
-
