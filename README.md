@@ -1,53 +1,32 @@
 # Claude Community Resource Navigator
 
-This project uses a Claude-inspired workflow to help organize a person's support needs into a simple resource category, follow-up questions, suggested next steps, and a staff summary.
+## Overview
 
-## Why I Built This
+Claude Community Resource Navigator is an AI-powered Python tool that helps social service staff organize client needs, assess urgency, create follow-up questions, and suggest next steps.
 
-I built this project to explore how AI can support nonprofits, public-service organizations, and community programs. The goal is to help staff better understand a person's needs and respond with clear next steps.
+This project was built to show how AI can support community organizations, caseworkers, volunteers, and intake staff by turning a client situation into a clear action plan.
 
 ## Features
 
-- Categorizes support needs
-- Suggests follow-up questions
-- Provides next steps
-- Creates a short staff summary
-- Includes safety-focused disclaimers
+- Uses the Anthropic Claude API
+- Detects crisis-related keywords before generating results
+- Supports staff roles like caseworker, intake worker, volunteer, and supervisor
+- Identifies client needs and resource categories
+- Creates follow-up questions
+- Suggests next steps
+- Generates a professional staff summary
+- Keeps API keys out of the code
 
-## Example Use
+## Technologies Used
 
-User situation:
-
-I lost my job and need help paying rent.
-
-Output:
-
-- Resource Category: Housing / Rental Assistance
-- Follow-Up Questions: Are you behind on rent? Have you received an eviction notice?
-- Suggested Next Steps: Call 211, gather documents, contact local housing support
-- Staff Summary: Person may need housing stability and income support resources
-
-## Skills Used
-
-- Claude
-- Prompt Engineering
 - Python
-- Community Resource Navigation
-- Problem Solving
-## Project Screenshots
+- Anthropic Claude API
+- JSON
+- Command Line Interface
 
-### Claude Prompt
+## How to Run
 
-![Claude Prompt](claude-screenshot-1.png)
+Install the dependency:
 
-### Claude Response
-
-![Claude Response](claude-screenshot-2.png)
-
-### Claude Building the Python Project
-
-![Claude Building the Python Project](claude-screenshot-3.png)
-
-### Program Running
-
-![Program Running](community-resource-navigator-running.png)
+```bash
+pip install anthropic
