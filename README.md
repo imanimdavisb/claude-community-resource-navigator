@@ -2,50 +2,38 @@
 
 ## Overview
 
-Claude Community Resource Navigator is an AI-powered Python tool that helps social service staff organize client needs, assess urgency, create follow-up questions, and suggest next steps.
+Claude Community Resource Navigator is a Python tool that helps social service staff organize client needs, assess urgency, create follow-up questions, and suggest next steps.
 
-This project demonstrates how AI can support community organizations by helping staff quickly assess client needs, prioritize resources, and create structured action plans.
+This project demonstrates how AI-assisted development can support community organizations by helping staff quickly assess client needs, prioritize resources, and create structured action plans.
 
 ## Features
 
-* Uses the Anthropic Claude API
 * Detects crisis-related keywords before generating results
 * Supports staff roles like caseworker, intake worker, volunteer, and supervisor
 * Identifies client needs and resource categories
 * Creates follow-up questions
 * Suggests next steps
 * Generates a professional staff summary
-* Keeps API keys out of the code
+* Runs locally with no API key required
+* Easy to run and evaluate for demonstrations and portfolio review
 
 ## Technologies Used
 
 * Python
-* Anthropic Claude API
-* JSON
+* Rule-Based Decision Logic
+* JSON-Style Data Structures
 * Prompt Engineering
 * Command Line Interface (CLI)
 
 ## How to Run
 
-Install the dependency:
-
-```bash
-pip install anthropic
-```
-
-Set your Anthropic API key:
-
-```bash
-export ANTHROPIC_API_KEY="sk-ant-..."
-```
-
-Run the project:
+Run the application:
 
 ```bash
 python community_resource_navigator.py
 ```
 
-The script will ask for your API key if you have not set it as an environment variable.
+No API key or paid credits are required.
 
 ## Example Use Case
 
@@ -69,6 +57,12 @@ If someone is in immediate danger, call 911. For mental health crisis support, c
 
 I used Claude AI to help create this project, including planning features, generating code, and improving functionality. I reviewed, tested, and customized the final project to ensure it met the goals of the application.
 
+## Project Notes
+
+An earlier version of this project used the Anthropic API to generate recommendations through Claude. The current version was redesigned to run locally without requiring an API key or paid API credits, making it easier for anyone to run, test, and evaluate the project.
+
+This project demonstrates how AI-assisted development can be used to build practical tools that support community organizations and social service staff.
+
 ## Future Improvements
 
 * Add ZIP-code based resource matching
@@ -76,3 +70,4 @@ I used Claude AI to help create this project, including planning features, gener
 * Add downloadable case note summaries
 * Add local Chicago-area referral data
 * Add multi-language support
+
