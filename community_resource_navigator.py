@@ -1,215 +1,269 @@
 """
-Community Resource Navigator (Beginner Python Project)
---------------------------------------------------------
-This program asks a user to describe their situation in plain language,
-then it:
-  1. Checks for any crisis/safety keywords first
-  2. Guesses a resource category based on keywords
-  3. Prints follow-up questions a staff member could ask
-  4. Prints suggested next steps
-  5. Prints a short staff summary
- 
-This is a simple keyword-matching program, NOT real artificial
-intelligence. It's meant to show how basic programming concepts
-(functions, dictionaries, lists, loops, if/elif) can be combined
-into something useful.
- 
+Community Resource Navigator
+------------------------------
+Paste this file into your GitHub repo and run it with:
+
+    python community_resource_navigator.py
+
+Requirements:
+    pip install anthropic
+
+You'll need an Anthropic API key. Get one at https://console.anthropic.com
+Set it as an environment variable before running:
+
+    On Mac/Linux:  export ANTHROPIC_API_KEY="sk-ant-..."
+    On Windows:    set ANTHROPIC_API_KEY=sk-ant-...
+
+Or the script will prompt you to enter it manually.
+
 IMPORTANT: This tool does not replace a caseworker, therapist,
 attorney, or emergency service.
 """
- 
+
+import os
+import sys
+import json
+
+try:
+    import anthropic
+except ImportError:
+    print("The 'anthropic' package is not installed.")
+    print("Run: pip install anthropic")
+    sys.exit(1)
+
+
 # ---------------------------------------------------------
-# STEP 1: Words that signal an emergency or crisis situation.
-# If any of these appear in what the user types, we show
-# crisis resources FIRST, before anything else.
+# CRISIS KEYWORDS
+# If any appear in the situation text, crisis resources are
+# shown FIRST before any other output.
 # ---------------------------------------------------------
 CRISIS_KEYWORDS = [
     "kill myself", "suicide", "hurt myself", "self harm", "self-harm",
     "abuse", "hitting me", "hit me", "afraid for my safety", "unsafe",
     "emergency", "no place to stay tonight", "homeless tonight",
-    "nowhere to sleep tonight"
+    "nowhere to sleep tonight", "domestic violence", "threatened",
 ]
- 
+
 # ---------------------------------------------------------
-# STEP 2: A "database" of resource categories.
-# Each category has:
-#   - a list of keywords that point to it
-#   - a list of follow-up questions
-#   - a list of suggested next steps
-# This is just a dictionary of dictionaries — a simple way
-# to organize related information in Python.
+# STAFF ROLES
+# Shown in the menu; passed to the AI for context.
 # ---------------------------------------------------------
-RESOURCES = {
-    "Housing / Rent Assistance": {
-        "keywords": ["rent", "evict", "eviction", "landlord", "lease", "housing"],
-        "questions": [
-            "When is rent due, and how far behind are you (if at all)?",
-            "Have you received any written notice from your landlord?",
-            "Who else lives in your household?",
-            "Do you have any income coming in right now?"
-        ],
-        "next_steps": [
-            "Check eligibility for local rental assistance programs.",
-            "Ask if there is an active eviction notice or court date.",
-            "Refer to landlord-tenant mediation resources if needed.",
-            "Screen for related needs like utility or food assistance."
-        ]
-    },
-    "Employment / Income Support": {
-        "keywords": ["job", "fired", "laid off", "unemployed", "unemployment", "income", "work"],
-        "questions": [
-            "Have you applied for unemployment benefits yet?",
-            "When did you lose your job or income?",
-            "Do you have any savings or other income sources?",
-            "Are you currently looking for new work?"
-        ],
-        "next_steps": [
-            "Help confirm unemployment insurance application status.",
-            "Refer to local job placement or career services.",
-            "Screen for emergency financial assistance programs.",
-            "Check eligibility for SNAP (food assistance)."
-        ]
-    },
-    "Food Assistance": {
-        "keywords": ["food", "hungry", "groceries", "snap", "meals"],
-        "questions": [
-            "Do you currently have access to enough food for your household?",
-            "Have you applied for SNAP or other food benefits?",
-            "Are there children or elderly family members in the home?",
-            "Is there a food pantry near you that you've used before?"
-        ],
-        "next_steps": [
-            "Refer to local food pantries or community meal programs.",
-            "Help with SNAP application if not already enrolled.",
-            "Screen for other related needs (housing, income)."
-        ]
-    },
-    "Utility Assistance": {
-        "keywords": ["electric", "electricity", "gas bill", "utility", "utilities", "water bill", "heat"],
-        "questions": [
-            "Which utility is at risk of being shut off (if any)?",
-            "Have you received a shutoff notice?",
-            "Have you applied for utility assistance before (e.g. LIHEAP)?",
-            "Is anyone in the home dependent on electricity for medical equipment?"
-        ],
-        "next_steps": [
-            "Check eligibility for utility assistance programs (e.g. LIHEAP).",
-            "Contact the utility company about payment plans.",
-            "Screen for related housing or income needs."
-        ]
-    },
-    "Healthcare Needs": {
-        "keywords": ["sick", "doctor", "medical", "health insurance", "medication", "hospital"],
-        "questions": [
-            "Do you currently have health insurance coverage?",
-            "Is this a medical emergency or an ongoing health issue?",
-            "Have you been able to access medications you need?",
-            "Do you have a primary care provider?"
-        ],
-        "next_steps": [
-            "Refer to community health clinics or sliding-scale providers.",
-            "Help check eligibility for Medicaid or other coverage.",
-            "If symptoms are urgent, recommend seeking medical care right away."
-        ]
-    }
+STAFF_ROLES = {
+    "1": "caseworker",
+    "2": "intake worker",
+    "3": "volunteer",
+    "4": "supervisor",
 }
- 
- 
-def check_for_crisis(text):
-    """
-    Looks through the user's text for crisis-related keywords.
-    Returns True if a possible crisis is detected, otherwise False.
-    """
-    text_lower = text.lower()
-    for keyword in CRISIS_KEYWORDS:
-        if keyword in text_lower:
-            return True
-    return False
- 
- 
-def show_crisis_message():
-    """Prints emergency resources. Used when a crisis keyword is found."""
-    print("\n" + "=" * 60)
-    print("THIS SOUNDS LIKE IT MAY BE AN EMERGENCY")
-    print("=" * 60)
-    print("If you or someone else is in immediate danger, call 911.")
-    print("For mental health crisis support, call or text 988")
-    print("(Suicide & Crisis Lifeline) — available 24/7.")
-    print("This program is not a substitute for emergency services.")
-    print("=" * 60 + "\n")
- 
- 
-def find_category(text):
-    """
-    Looks through the RESOURCES dictionary and tries to match
-    keywords found in the user's text. Returns the matching
-    category name, or None if nothing matches.
-    """
-    text_lower = text.lower()
-    for category_name, info in RESOURCES.items():
-        for keyword in info["keywords"]:
-            if keyword in text_lower:
-                return category_name
-    return None  # No match found
- 
- 
-def print_list(title, items):
-    """A small helper function to print a labeled list neatly."""
-    print(title)
-    for item in items:
-        print(f"  - {item}")
+
+# ---------------------------------------------------------
+# RESOURCE CATEGORIES
+# Used only to display the urgency color in the terminal.
+# The AI determines the actual category from the situation.
+# ---------------------------------------------------------
+URGENCY_LABELS = {
+    "High":   "(!!) HIGH",
+    "Medium": "( ! ) MEDIUM",
+    "Low":    "(  ) LOW",
+}
+
+
+# ---------------------------------------------------------
+# HELPERS
+# ---------------------------------------------------------
+
+def divider(char="=", width=60):
+    print(char * width)
+
+def section(title):
     print()
- 
- 
-def print_staff_summary(original_text, category):
-    """Prints a short, staff-facing summary of the situation."""
-    print("STAFF SUMMARY")
-    print("-" * 60)
-    if category:
-        print(f"Client situation: \"{original_text}\"")
-        print(f"Likely resource category: {category}")
-        print("Recommend confirming urgency and beginning intake")
-        print("for the category above. Screen for related needs.")
-    else:
-        print(f"Client situation: \"{original_text}\"")
-        print("No clear category matched automatically.")
-        print("Recommend a manual conversation to clarify needs.")
-    print("-" * 60 + "\n")
- 
- 
+    print(title)
+    print("-" * len(title))
+
+def print_list(items, prefix="  - "):
+    for item in items:
+        print(f"{prefix}{item}")
+
+def check_for_crisis(text):
+    """Returns True if any crisis keyword is found in the text."""
+    lower = text.lower()
+    return any(keyword in lower for keyword in CRISIS_KEYWORDS)
+
+def show_crisis_message():
+    """Prints crisis/emergency resources prominently."""
+    print()
+    divider("!")
+    print("!! POTENTIAL CRISIS DETECTED")
+    divider("!")
+    print("  If someone is in immediate danger:  call 911")
+    print("  Mental health crisis (24/7):         call or text 988")
+    print("  Crisis Text Line:                    text HOME to 741741")
+    print("  This program is NOT a substitute for emergency services.")
+    divider("!")
+    print()
+
+def get_api_key():
+    """Gets the API key from the environment or prompts the user."""
+    key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    if key:
+        return key
+    print("\nNo ANTHROPIC_API_KEY environment variable found.")
+    key = input("Enter your Anthropic API key: ").strip()
+    if not key:
+        print("No API key provided. Exiting.")
+        sys.exit(1)
+    return key
+
+def choose_role():
+    """Lets the user pick their staff role."""
+    print("\nSelect your staff role:")
+    for num, role in STAFF_ROLES.items():
+        print(f"  {num}. {role.title()}")
+    choice = input("Enter number (or press Enter for caseworker): ").strip()
+    return STAFF_ROLES.get(choice, "caseworker")
+
+
+# ---------------------------------------------------------
+# AI ANALYSIS
+# Sends the situation to Claude and returns structured JSON.
+# ---------------------------------------------------------
+
+SYSTEM_PROMPT_TEMPLATE = """You are a community resource navigator assistant helping a {role} at a social services agency.
+Analyze the described client situation and respond ONLY with a valid JSON object (no markdown, no backticks, no extra text).
+
+Return this exact structure:
+{{
+  "primary_category": "<one of: Housing / Rent Assistance, Employment / Income Support, Food Assistance, Utility Assistance, Healthcare Needs, Mental Health Support, Legal Aid, Multiple Needs, Unclear>",
+  "urgency": "<one of: High, Medium, Low>",
+  "urgency_reason": "<1 sentence explaining the urgency level>",
+  "identified_needs": [
+    {{"name": "<need name>", "description": "<max 10 words>"}}
+  ],
+  "follow_up_questions": [
+    "<specific, practical question tailored to this exact situation>"
+  ],
+  "next_steps": [
+    "<concrete, actionable step ordered by priority>"
+  ],
+  "staff_summary": "<2-3 sentence professional summary for case notes, written in third person>",
+  "referral_note": "<1 sentence about any important referral or coordination needed>"
+}}
+
+Include 2-4 identified_needs, 4-6 follow_up_questions, and 4-6 next_steps."""
+
+
+def analyze_situation(client, situation, role):
+    """Calls the Anthropic API and returns a parsed result dict."""
+    system_prompt = SYSTEM_PROMPT_TEMPLATE.format(role=role)
+
+    message = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=1024,
+        system=system_prompt,
+        messages=[
+            {"role": "user", "content": f'Client situation: "{situation}"'}
+        ]
+    )
+
+    raw = message.content[0].text.strip()
+    # Strip accidental markdown fences just in case
+    raw = raw.replace("```json", "").replace("```", "").strip()
+    return json.loads(raw)
+
+
+# ---------------------------------------------------------
+# DISPLAY RESULTS
+# ---------------------------------------------------------
+
+def display_results(result, situation, role):
+    """Prints all sections of the analysis to the terminal."""
+
+    divider()
+    print(f"RESOURCE CATEGORY:  {result['primary_category']}")
+    urgency_label = URGENCY_LABELS.get(result['urgency'], result['urgency'])
+    print(f"URGENCY:            {urgency_label}")
+    print(f"REASON:             {result['urgency_reason']}")
+    divider()
+
+    section("IDENTIFIED NEEDS")
+    for need in result.get("identified_needs", []):
+        print(f"  • {need['name']}: {need['description']}")
+
+    section("FOLLOW-UP QUESTIONS TO ASK")
+    print_list(result.get("follow_up_questions", []))
+
+    section("SUGGESTED NEXT STEPS")
+    for i, step in enumerate(result.get("next_steps", []), 1):
+        print(f"  {i}. {step}")
+
+    section("STAFF SUMMARY  (for case notes)")
+    print(f"  {result.get('staff_summary', '')}")
+    referral = result.get("referral_note", "")
+    if referral:
+        print()
+        print(f"  Referral note: {referral}")
+
+    divider()
+    print(f"  Client situation: \"{situation}\"")
+    print(f"  Staff role:       {role.title()}")
+    divider()
+    print()
+
+
+# ---------------------------------------------------------
+# MAIN
+# ---------------------------------------------------------
+
 def main():
-    """The main function that runs the whole program."""
-    print("=" * 60)
-    print("COMMUNITY RESOURCE NAVIGATOR (Practice Tool)")
-    print("=" * 60)
-    print("This tool helps staff get a starting point — it does")
-    print("not replace a caseworker, therapist, or emergency service.\n")
- 
-    # Step 1: Get input from the user
-    situation = input("Please describe the situation: ")
-    print()  # blank line for spacing
- 
-    # Step 2: Check for crisis keywords FIRST
-    if check_for_crisis(situation):
-        show_crisis_message()
- 
-    # Step 3: Try to find a matching resource category
-    category = find_category(situation)
- 
-    if category:
-        print(f"RESOURCE CATEGORY: {category}\n")
-        print_list("FOLLOW-UP QUESTIONS TO ASK:", RESOURCES[category]["questions"])
-        print_list("SUGGESTED NEXT STEPS:", RESOURCES[category]["next_steps"])
-    else:
-        print("RESOURCE CATEGORY: Not clearly identified.\n")
-        print("Consider asking the client more about their situation,")
-        print("or manually choosing the closest matching category.\n")
- 
-    # Step 4: Always show a staff summary at the end
-    print_staff_summary(situation, category)
- 
- 
-# This line makes sure main() only runs when this file is run directly
-# (a common beginner Python pattern worth learning!)
+    divider()
+    print("  COMMUNITY RESOURCE NAVIGATOR")
+    divider()
+    print("  This tool helps staff get a starting point.")
+    print("  It does NOT replace a caseworker, therapist,")
+    print("  attorney, or emergency service.")
+    divider()
+
+    api_key = get_api_key()
+    client = anthropic.Anthropic(api_key=api_key)
+    role = choose_role()
+
+    while True:
+        print()
+        situation = input("Describe the client's situation (or 'quit' to exit):\n> ").strip()
+
+        if situation.lower() in ("quit", "exit", "q"):
+            print("\nGoodbye.\n")
+            break
+
+        if not situation:
+            print("Please enter a description.")
+            continue
+
+        # Always check for crisis keywords first
+        if check_for_crisis(situation):
+            show_crisis_message()
+
+        print("\nAnalyzing situation...\n")
+
+        try:
+            result = analyze_situation(client, situation, role)
+            display_results(result, situation, role)
+        except json.JSONDecodeError:
+            print("Error: Could not parse the AI response. Please try again.")
+        except anthropic.APIConnectionError:
+            print("Error: Could not connect to the Anthropic API.")
+            print("Check your internet connection and try again.")
+        except anthropic.AuthenticationError:
+            print("Error: Invalid API key. Check your ANTHROPIC_API_KEY and try again.")
+        except anthropic.RateLimitError:
+            print("Error: Rate limit reached. Wait a moment and try again.")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+
+        again = input("Analyze another situation? (y/n): ").strip().lower()
+        if again != "y":
+            print("\nGoodbye.\n")
+            break
+
+
 if __name__ == "__main__":
     main()
