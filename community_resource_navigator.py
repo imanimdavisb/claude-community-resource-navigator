@@ -17,7 +17,7 @@ Set it as an environment variable before running:
 Or the script will prompt you to enter it manually.
 
 IMPORTANT: This tool does not replace a caseworker, therapist,
-attorney, or emergency service.
+attorney, healthcare provider, or emergency service.
 """
 
 import os
@@ -219,7 +219,7 @@ def main():
     divider()
     print("  This tool helps staff get a starting point.")
     print("  It does NOT replace a caseworker, therapist,")
-    print("  attorney, or emergency service.")
+    print("  attorney, healthcare provider, or emergency service.")
     divider()
 
     api_key = get_api_key()
